@@ -1,0 +1,55 @@
+<!-- view_appointment.html -->
+{% extends "frontstage.html" %}
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block title %}预约列表{% endblock title%}
+
+{% block content%}
+<br/>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<script language="javascript">
+  alert('{{ messages[0] }}');
+</script>
+{% endif %}
+{% endwith %}
+
+<div class="container-xxl">
+  <h1 class="text-center mb-4">預約列表</h1>
+
+  {% if appointments %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col">預約ID</th>
+          <th scope="col">日期</th>
+          <th scope="col">狀態</th>
+          <th scope="col">填寫醫療紀錄</th> <!-- 新增的列 -->
+        </tr>
+      </thead>
+      <tbody>
+        {% for appointment in appointments %}
+        <tr>
+          <td>{{ appointment[2] }}</td>
+          <td>{{ appointment[0].strftime('%Y-%m-%d') }}</td>
+          <td>{{ appointment[1] }}</td>
+          <td>
+            <form action="{{ url_for('vet.write_medical_record', aId=appointment[2]) }}" method="get">
+              <button type="submit" class="btn btn-primary">填寫</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-center">沒有找到預約。</p>
+  {% endif %}
+</div>
+
+{% endblock content%}

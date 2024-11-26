@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block title %}Register Page{% endblock title%}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+function validate_user_fields() {
+    var realName = $("div#page_for_user input[name='real_name']").val();
+    var phoneNumber = $("div#page_for_user input[name='phone_number']").val();
+    var address = $("div#page_for_user input[name='address']").val();
+
+    if (!realName || !phoneNumber || !address) {
+        alert("姓名、電話或地址不得為空");
+        return false;
+    }
+    return true;
+}
+
+// 驗證寵物頁面欄位
+function validate_pet_fields() {
+    var petName = $("div#page_for_pet input[name='pet_name']").val();
+    var petSpecies = $("div#page_for_pet input[name='pet_species']").val();
+    var petBreed = $("div#page_for_pet input[name='pet_breed']").val();
+    var petAge = $("div#page_for_pet input[name='pet_age']").val();
+    var petGender = $("div#page_for_pet input[name='pet_gender']").val();
+
+    if (!petName || !petSpecies || !petBreed || !petAge || !petGender) {
+        alert("寵物名稱、物種、品種、年齡或性別不得為空");
+        return false;
+    }
+    return true;
+}
+
+// 驗證醫生頁面欄位
+function validate_doctor_fields() {
+    var realName = $("div#page_for_doctor input[name='real_name']").val();
+    var phoneNumber = $("div#page_for_doctor input[name='phone_number']").val();
+    var specialization = $("div#page_for_doctor input[name='specialization']").val();
+    var clinicHours = $("div#page_for_doctor input[name='clinic_hours']").val();
+
+    if (!realName || !phoneNumber || !specialization || !clinicHours) {
+        alert("姓名、電話、專長或門診時間不得為空");
+        return false;
+    }
+    return true;
+}
+
+
+function validate_common_fields() {
+    var account = $("div#page_for_common input[name='account']").val();
+    var password = $("div#page_for_common input[name='password']").val();
+    if (!account || !password) {
+        alert("帳號或密碼不得為空");
+        return false;
+    }
+    return true;
+}
+
+function next_page() {
+    if (!validate_common_fields()) {
+        return;
+    }
+
+    var account = $("div#page_for_common input[name='account']").val();
+
+    // 檢查帳號是否重複
+    $.ajax({
+        url: "/check_account",
+        type: "POST",
+        data: { account: account },
+        success: function (response) {
+            // 帳號檢查成功，進入下一頁
+            var identity = $("select[name='identity']").val();
+            $('#page_for_common').hide();
+            if (identity === "user") {
+                $('#page_for_user').show();
+            } else if (identity === "manager") {
+                $('#page_for_doctor').show();
+            }
+        },
+        error: function (xhr) {
+            // 帳號檢查失敗，顯示錯誤訊息
+            var response = JSON.parse(xhr.responseText);
+            alert(response.message);
+        }
+    });
+}
+
+function set_submit_info() {
+    var identity = $("select[name='identity']").val();
+    $("#identity").val(identity);
+
+    if (identity === "user") {
+        if (!validate_pet_fields()) {
+            return; // 阻止提交表單
+        }
+        var realName = $("div#page_for_user input[name='real_name']").val();
+        $("#username").val(realName);
+        $("#real_name").val(realName);
+        $("#phone_number").val($("div#page_for_user input[name='phone_number']").val());
+        $("#address").val($("div#page_for_user input[name='address']").val());
+        $("#pet_name").val($("div#page_for_pet input[name='pet_name']").val());
+        $("#pet_species").val($("div#page_for_pet input[name='pet_species']").val());
+        $("#pet_breed").val($("div#page_for_pet input[name='pet_breed']").val());
+        $("#pet_age").val($("div#page_for_pet input[name='pet_age']").val());
+        $("#pet_gender").val($("div#page_for_pet input[name='pet_gender']").val());
+    } else if (identity === "manager") {
+        if (!validate_doctor_fields()) {
+            return; // 阻止提交表單
+        }
+        var realName = $("div#page_for_doctor input[name='real_name']").val();
+        $("#username").val(realName);
+        $("#real_name").val(realName);
+        $("#phone_number").val($("div#page_for_doctor input[name='phone_number']").val());
+        $("#specialization").val($("div#page_for_doctor input[name='specialization']").val());
+        $("#clinic_hours").val($("div#page_for_doctor input[name='clinic_hours']").val());
+    }
+
+    $("#account").val($("div#page_for_common input[name='account']").val());
+    $("#password").val($("div#page_for_common input[name='password']").val());
+
+    $("#register").submit();
+}
+
+// 顯示頁面邏輯
+function show_common() {
+    $('#page_for_common').show();
+    $('#page_for_user').hide();
+    $('#page_for_doctor').hide();
+    $('#page_for_pet').hide();
+}
+
+function show_pet_info() {
+    if (!validate_user_fields()) {
+        return; // 阻止進入下一頁
+    }
+    $('#page_for_user').hide();
+    $('#page_for_pet').show();
+}
+
+</script>
+
+<div class="position-absolute top-50 start-50 translate-middle outer_div">
+    <a href="{{ url_for('index') }}"><img class="icon" src="{{ url_for('static', filename='./img/home.png') }}"></a>
+    <h1 class="register_title mb-3 mt-3">會員註冊</h1>
+    <form id="register" method="post" action={{ url_for('api.register') }}>
+        <input type="hidden" id="username" name="username" value="">
+        <input type="hidden" id="account" name="account" value="">
+        <input type="hidden" id="password" name="password" value="">
+        <input type="hidden" id="identity" name="identity" value="">
+        <input type="hidden" id="real_name" name="real_name" value="">
+        <input type="hidden" id="phone_number" name="phone_number" value="">
+        <input type="hidden" id="address" name="address" value="">
+        <input type="hidden" id="specialization" name="specialization" value="">
+        <input type="hidden" id="clinic_hours" name="clinic_hours" value="">
+        <input type="hidden" id="pet_name" name="pet_name" value="">
+        <input type="hidden" id="pet_species" name="pet_species" value="">
+        <input type="hidden" id="pet_breed" name="pet_breed" value="">
+        <input type="hidden" id="pet_age" name="pet_age" value="">
+        <input type="hidden" id="pet_gender" name="pet_gender" value="">
+    </form>
+
+    <div id="page_for_common">
+        <p>帳號：<input type="text" name="account" required /></p>
+        <p>密碼：<input type="password" name="password" required /></p>
+        <p>
+            身份：
+            <select name="identity">
+                <option value="user" selected>使用者</option>
+                <option value="manager">醫生</option>
+            </select>
+        </p>
+        <p>
+            <a href="{{ url_for('index') }}">
+                <button type="button" class="register_btn">回上頁</button>
+            </a>
+            <button type="button" class="register_btn" onclick="next_page()">註冊</button>
+        </p>
+    </div>
+
+    <div id="page_for_user" style="display:none;">
+        <p>姓名：<input type="text" name="real_name" required /></p>
+        <p>電話：<input type="text" name="phone_number" required /></p>
+        <p>地址：<input type="text" name="address" required /></p>
+        <button type="button" class="register_btn" onclick="show_common()">回上頁</button>
+        <button type="button" class="register_btn" onclick="show_pet_info()">下一步</button>
+    </div>
+
+    <div id="page_for_doctor" style="display:none;">
+        <p>姓名：<input type="text" name="real_name" required /></p>
+        <p>電話：<input type="text" name="phone_number" required /></p>
+        <p>專長：<input type="text" name="specialization" required /></p>
+        <p>門診時間：<input type="text" name="clinic_hours" required /></p>
+        <button type="button" class="register_btn" onclick="show_common()">回上頁</button>
+        <button type="button" class="register_btn" onclick="set_submit_info()">確認</button>
+    </div>
+
+    <div id="page_for_pet" style="display:none;">
+        <p>寵物名稱：<input type="text" name="pet_name" required /></p>
+        <p>物種：<input type="text" name="pet_species" required /></p>
+        <p>品種：<input type="text" name="pet_breed" required /></p>
+        <p>年齡：<input type="text" name="pet_age" required /></p>
+        <p>性別：<input type="text" name="pet_gender" required /></p>
+        <button type="button" class="register_btn" onclick="show_common()">回上頁</button>
+        <button type="button" class="register_btn" onclick="set_submit_info()">確認</button>
+    </div>
+</div>
+{% endblock content %}

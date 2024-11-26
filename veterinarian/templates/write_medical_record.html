@@ -1,0 +1,39 @@
+<!-- write_medical_record.html -->
+{% extends "frontstage.html" %}
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block title %}填寫醫療紀錄{% endblock title%}
+
+{% block content%}
+<br/>
+
+<div class="container-xxl">
+    <h1 class="text-center mb-4">填寫醫療紀錄</h1>
+
+    <form method="post" action="{{ url_for('vet.write_medical_record', aId=aId) }}">
+        <div class="mb-3">
+            <label for="pId" class="form-label">寵物ID</label>
+            <input type="text" class="form-control" id="pId" name="pId" value="{{ pId }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="vId" class="form-label">獸醫ID</label>
+            <input type="text" class="form-control" id="vId" name="vId" value="{{ vId }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="diagnosis" class="form-label">診斷內容</label>
+            <input type="text" class="form-control" id="diagnosis" name="diagnosis" required>
+        </div>
+        <div class="mb-3">
+            <label for="treatment" class="form-label">治療方案/用藥</label>
+            <input type="text" class="form-control" id="treatment" name="treatment" required>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">填寫完畢</button>
+            <a href="{{ url_for('vet.view_appointment') }}" class="btn btn-secondary">回上一頁</a>
+        </div>
+    </form>
+</div>
+
+{% endblock content%}
